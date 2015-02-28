@@ -16,11 +16,15 @@ var FileLoader = L.Class.extend({
         this._map = map;
         L.Util.setOptions(this, options);
 
-        this._parsers = {
+        this._parsers = L.Util.extend({
             'geojson': this._loadGeoJSON,
             'gpx': this._convertToGeoJSON,
             'kml': this._convertToGeoJSON
-        };
+        }, this.options.parsers);
+
+        if (this.options.binaryFormats) {
+            this._binaryFormats = [].concat(this.options.binaryFormats);
+        }
     },
 
     load: function (file /* File */) {
@@ -55,7 +59,13 @@ var FileLoader = L.Class.extend({
             }
 
         }, this);
-        reader.readAsText(file);
+
+        if (this._binaryFormats.indexOf(ext) !== -1) {
+            reader.readAsArrayBuffer(file);
+        } else {
+            reader.readAsText(file);
+        }
+
         return reader;
     },
 
